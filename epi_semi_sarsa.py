@@ -5,40 +5,6 @@ import random
 import torch
 import torch.nn as nn
 
-'''
-def episodic_semigradient_sarsa(env, policy, alpha, epsilon, num_episodes):
-    # initialize value-function weights arbitrarily
-    shape = (3, 3)  # TBD`
-    weights = np.zeros(shape)
-
-    # loop for each episode
-    for episode in range(1, num_episodes + 1):
-        # S, A <-- initial state and action of episode (e.g., epsilon-greedy)
-        state, _ = env.reset()
-        action = None  # a0 TBD
-
-        # loop for each step of episode
-        terminal = False
-        while not terminal:
-            # take action A, observe R, S'
-            next_state = None  # transition with p(s, a, s')
-            reward = None  # get reward
-
-            # if S' is terminal
-            if next_state is None:  # tbd, probably a list of terminal states?
-                # WEIGHT UPDATE STEP
-                break  # go to next episode
-
-            # choose a' as function of q(S', . , w) (e.g. epsilon greedy)
-            next_action = None
-            # WEIGHT UPDATE STEP
-
-            state = next_state
-            action = next_action
-
-    return policy
-'''
-
 
 # neural network to approximate action-value
 class ActionValueApproximator(nn.Module):
@@ -67,6 +33,7 @@ def episodic_semigradient_nstep_sarsa(env, q_func, alpha, gamma, epsilon, n, num
 
     # loop for each episode
     for episode in range(1, num_episodes + 1):
+        print("Episode ", episode)
         # initialize and store non-terminal S0
         state, _ = env.reset()
         states = [state]
@@ -113,8 +80,6 @@ def episodic_semigradient_nstep_sarsa(env, q_func, alpha, gamma, epsilon, n, num
                     G += q_pred
 
                 # weight update
-                # Update the weights using gradient descent. Each parameter is a Tensor, so
-                # we can access its gradients like we did before.
                 state_action_tau = torch.tensor(np.append(states[tau], actions[tau]))
                 q_pred = q_func(state_action_tau)
                 # MSE of St and Ut
@@ -155,7 +120,7 @@ if __name__ == '__main__':
     # action space: Discrete(3) (left, no accel, right)
     # state space: Box([-1.2 -0.07], [0.6 0.07], (2,), float32)
     env = gym.make('MountainCar-v0', render_mode="human")
-    print(env._max_episode_steps)
+    # print(env._max_episode_steps)  200 by default
     env._max_episode_steps = 1000
     # env = gym.make('LunarLander-v2', render_mode="human")
     observation, info = env.reset(seed=42)  # set RNG generation seed for future episodes
@@ -165,11 +130,11 @@ if __name__ == '__main__':
     q_func = ActionValueApproximator(input_dim)
     q_func.double()
     # q_func.int()
-    alpha = 0.1
-    gamma = 1
-    epsilon = 0.2
+    alpha = 0.3
+    gamma = .99
+    epsilon = 1
     n = 4
-    num_episodes = 20
+    num_episodes = 50
 
     episodic_semigradient_nstep_sarsa(env, q_func, alpha, gamma, epsilon, n, num_episodes)
     # for _ in range(10):
